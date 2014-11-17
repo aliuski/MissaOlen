@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">MissaOlen</string>
+    <string name="action_settings">Asetukset</string>
+    <string name="action_saveddata">Talletetut jäljet</string>
+    <string name="done">OK</string>
+    <string name="delete">Poista</string>
+    <string name="copydata">Kopioi tietokanta</string>
+    <string name="cancel">Peruuta</string>
+    <string name="maketrack">Talleta jäljet</string>
+    <string name="gps">GPS</string>
+    <string name="map">Kartta</string>
+    <string name="selectall">Kaikki</string>
+    <string name="selecttype">Valitse käyttötyyppi</string>
+    <string name="trachandel">Jälkien käsittely</string>
+    <string name="startpointn">Aloitus N / lat</string>
+    <string name="startpointe">Aloitus E / lon</string>
+    <string name="copydefault">Oletukseksi</string>
+    
+</resources>
