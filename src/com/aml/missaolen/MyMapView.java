@@ -37,6 +37,7 @@ public class MyMapView extends View{
 	private String[] selectdate;
 	private ArrayList <Point>tracpointlist;
 	private boolean forceshowtracpoint;
+	private boolean map_loading;
 	
 	public MyMapView(Context context) {
         super(context);
@@ -78,6 +79,7 @@ public class MyMapView extends View{
 	}
 	
 	private void makeMap(){
+		map_loading = true;
 		/*
 		if(bg!=null){
 			bg.recycle();
@@ -108,6 +110,7 @@ public class MyMapView extends View{
 		loadScreenPart(tx,ty,900,1800);
 		tx+=1800;
 		loadScreenPart(tx,ty,1800,1800);
+		map_loading = false;
 	}
 
 	private void loadScreenPart(int tx,int ty,int px,int py){
@@ -159,7 +162,7 @@ public class MyMapView extends View{
 	}
 	
 	public void setCordinate(int x, int y){
-		if(!setcenter){
+		if(!setcenter && !map_loading){
 			this.x = x;
 			this.y = y;
 			invalidate();
