@@ -227,10 +227,8 @@ public class MyMapView extends View{
 	         canvas.drawLine(cx-25, cy-25, cx+25, cy+25, paint3);
 	         canvas.drawLine(cx+25, cy-25, cx-25, cy+25, paint3);
     	}
-    	if(selectdate != null) {
-    		paint3.setColor(Color.BLUE);
+    	if(selectdate != null)
     		readPointFromDb(canvas,t_x,t_y);
-    	}
     	canvas.drawText("N "+(map_y - this.y * 2), 5, 40, paint);
     	canvas.drawText("E "+(2 * this.x + map_x), 5, 80, paint);
     }
@@ -262,8 +260,12 @@ public class MyMapView extends View{
     	    	Point p = (Point)it.next();
 			    int tr_x = (p.x - map_x)/2 - t_x;
 			    int tr_y = (map_y - p.y)/2 - t_y;
-	    		if(tr_x > 0 && tr_y > 0 && tr_x < this.getWidth() && tr_y < this.getHeight())
+	    		if(tr_x > 0 && tr_y > 0 && tr_x < this.getWidth() && tr_y < this.getHeight()){
+	    			paint3.setColor(Color.YELLOW);
+				    canvas.drawRect(tr_x-5, tr_y-5, tr_x+5, tr_y+5, paint3);
+	    			paint3.setColor(Color.BLUE);
 				    canvas.drawRect(tr_x-2, tr_y-2, tr_x+3, tr_y+3, paint3);
+	    		}
     	    }
     	}
     }
