@@ -11,6 +11,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager.LayoutParams;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.RadioButton;
 import android.widget.Spinner;
 
 public class DataHandling extends DialogFragment {
@@ -26,7 +27,7 @@ public class DataHandling extends DialogFragment {
     String selecteddate;
     
 	public interface DataHandlingListener {
-        void onFinishDataDialog(int type, String date);
+        void onFinishDataDialog(int type, String date, boolean in);
     }
 
     public DataHandling() {
@@ -56,7 +57,7 @@ public class DataHandling extends DialogFragment {
         {
             public void onClick(View view) {
             	DataHandlingListener activity = (DataHandlingListener) getActivity();
-                activity.onFinishDataDialog(SHOWDATE,(String)((Spinner)viewf.findViewById(R.id.columnDates)).getSelectedItem());
+                activity.onFinishDataDialog(SHOWDATE,(String)((Spinner)viewf.findViewById(R.id.columnDates)).getSelectedItem(),true);
                 dismiss();
             }
         });
@@ -68,7 +69,7 @@ public class DataHandling extends DialogFragment {
             	String date = (String)((Spinner)viewf.findViewById(R.id.columnDates)).getSelectedItem();
             	if(date.length() != 10)
             		return;
-                activity.onFinishDataDialog(DELETE,date);
+                activity.onFinishDataDialog(DELETE,date,true);
                 dismiss();
             }
         });
@@ -77,7 +78,7 @@ public class DataHandling extends DialogFragment {
         {
             public void onClick(View view) {
             	DataHandlingListener activity = (DataHandlingListener) getActivity();
-                activity.onFinishDataDialog(0,null);
+                activity.onFinishDataDialog(0,null,true);
                 dismiss();
             }
         });
@@ -86,7 +87,8 @@ public class DataHandling extends DialogFragment {
         {
             public void onClick(View view) {
             	DataHandlingListener activity = (DataHandlingListener) getActivity();
-                activity.onFinishDataDialog(COPYDB,null);
+            	RadioButton rb = (RadioButton) viewf.findViewById(R.id.rbin);
+                activity.onFinishDataDialog(COPYDB,null,rb.isChecked());
                 dismiss();
             }
         });

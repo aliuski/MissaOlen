@@ -17,5 +17,11 @@
     <string name="startpointn">Aloitus N / lat</string>
     <string name="startpointe">Aloitus E / lon</string>
     <string name="copydefault">Oletukseksi</string>
+    <string name="godefaultposition">Oletus paikka</string>
+    <string name="scale">Mittakaava</string>
+    <string-array name="option_arrays">
+        <item>8000</item>
+        <item>80000</item>
+    </string-array>
     
 </resources>

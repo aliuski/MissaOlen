@@ -10,16 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true" />
-
-    <Button
-        android:id="@+id/btnDone"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="49dp"
-        android:text="@string/done" />
-
+    
     <Button
         android:id="@+id/btnDelete"
         android:layout_width="wrap_content"
@@ -30,20 +21,54 @@
         android:text="@string/delete" />
 
     <Button
-        android:id="@+id/btnCancel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentRight="true"
-        android:layout_below="@+id/btnDelete"
-        android:text="@string/cancel" />
-
-    <Button
         android:id="@+id/btnCopy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/btnCancel"
+        android:layout_above="@+id/rbGrp"
         android:layout_alignParentRight="true"
         android:text="@string/copydata" />
 
+   <RadioGroup
+        android:id="@+id/rbGrp"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnDelete"
+        android:orientation="horizontal" >
+
+        <RadioButton
+            android:id="@+id/rbin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="In"
+            android:checked="true"/>
+
+        <RadioButton
+            android:id="@+id/rbout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Out" />
+    </RadioGroup>
+
+   <Button
+       android:id="@+id/btnDone"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_alignParentLeft="true"
+       android:layout_alignParentTop="true"
+       android:layout_marginTop="49dp"
+       android:layout_toLeftOf="@+id/btnCopy"
+       android:text="@string/done" />
+
+   <Button
+       android:id="@+id/btnCancel"
+       android:layout_width="wrap_content"
+       android:layout_height="wrap_content"
+       android:layout_alignBaseline="@+id/btnDone"
+       android:layout_alignBottom="@+id/btnDone"
+       android:layout_alignLeft="@+id/btnCopy"
+       android:layout_alignParentRight="true"
+       android:text="@string/cancel" />
+    
 </RelativeLayout>

@@ -13,5 +13,9 @@
         android:orderInCategory="100"
         android:title="@string/action_saveddata"
         app:showAsAction="never"/>
-    
+    <item
+        android:id="@+id/action_godefaultposition"
+        android:orderInCategory="100"
+        android:title="@string/godefaultposition"
+        app:showAsAction="never"/>
 </menu>

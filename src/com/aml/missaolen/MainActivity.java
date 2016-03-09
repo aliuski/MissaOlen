@@ -28,19 +28,21 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 public class MainActivity extends FragmentActivity implements ScreenTypeListener,DataHandlingListener {
-    static final int STADIOLETUSE=382900;
-    static final int STADIOLETUSN=6677300;
+    static final int STADIOLETUSE=386272;
+    static final int STADIOLETUSN=6673692;
 	LocationManager lm;
     LocationListener locationListener;
     boolean type = false;
 	String selecteddate;
+	String scale;
     MyMapView mmv;
     
-    public void onFinishInputDialog(boolean type,boolean savetrack,String startPointE,String startPointN) {
-    	if(startPointE.length() > 0 && startPointN.length() > 0)
-    		mmv.setCordinateTrac(Integer.parseInt(startPointE),Integer.parseInt(startPointN));
+    public void onFinishInputDialog(boolean type,boolean savetrack,String startPointE,String startPointN,String scale) {
+    	this.scale = scale;
+    	mmv.setScale(scale,true);
     	initScreenType(type);
         if(savetrack){
         	if(!isServiceRunning(LocationService.class))
@@ -66,7 +68,7 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
         }
     }
     
-    public void onFinishDataDialog(int type, String date){
+    public void onFinishDataDialog(int type, String date, boolean in_out){
     	if(type == DataHandling.SHOWDATE){
     		this.selecteddate = date;
     		mmv.setDate(date, false);
@@ -77,7 +79,7 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
 	        db.deleteLocations(date);
 	        db.close();
     	} else if (type == DataHandling.COPYDB){
-         	CopyDatabaseOut();
+         	CopyDatabaseOut(in_out);
     	}
     }
     
@@ -134,18 +136,23 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
 
         if(IsExternalStorageAvailableAndWriteable())
         	mmv.setDirectory(getExternalFilesDir(null).getAbsolutePath()+"/");
-
+        
+    	if(savedInstanceState != null){
+    		scale = savedInstanceState.getString("scale");
+    		mmv.setScale(scale, false);
+    	}
+        
         if(savedInstanceState == null || savedInstanceState.getString("startPointN") == null){
-    		String out[] = MissaOlenSettings.loadEandNsettings(this);
-    		if(out != null && out.length == 2)
-    			mmv.setCordinateTrac(Integer.parseInt(out[0]),Integer.parseInt(out[1]));
+    		int out[] = MissaOlenSettings.loadEandNsettings(this);
+    		if(out != null)
+    			mmv.setCordinateTrac(out[0],out[1]);
     		else
     			mmv.setCordinateTrac(STADIOLETUSE,STADIOLETUSN);
         } else
     			mmv.setCordinateTrac(Integer.parseInt(savedInstanceState.getString("startPointE")),
     					Integer.parseInt(savedInstanceState.getString("startPointN")));
         
-    	if(savedInstanceState != null){    		
+    	if(savedInstanceState != null){
     		selecteddate = savedInstanceState.getString("selecteddate");
     		if(isServiceRunning(LocationService.class))
     			mmv.setDate((new java.sql.Date((new java.util.Date()).getTime())).toString(), true);
@@ -189,6 +196,7 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
       super.onSaveInstanceState(savedInstanceState);
 	      savedInstanceState.putBoolean("type",type);
 	      savedInstanceState.putString("selecteddate",selecteddate);
+	      savedInstanceState.putString("scale",scale);
 	      if(mmv.getE() > 20000){
 	    	  savedInstanceState.putString("startPointE",String.valueOf(mmv.getE()));
 	    	  savedInstanceState.putString("startPointN",String.valueOf(mmv.getN()));
@@ -225,7 +233,7 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
         	ScreenType sc = new ScreenType();
             sc.setCancelable(false);
             sc.setDialogTitle(getResources().getString(R.string.selecttype),
-            		type,isServiceRunning(LocationService.class),mmv.getE(),mmv.getN());
+            		type,isServiceRunning(LocationService.class),mmv.getE(),mmv.getN(),scale);
             sc.show(fragmentManager, "Input dialog");
 
             return true;
@@ -238,6 +246,10 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
             sc.show(fragmentManager, "Input dialog");
 
         	return true;
+        } else if (id == R.id.action_godefaultposition && !isServiceRunning(LocationService.class)){
+    		int out[] = MissaOlenSettings.loadEandNsettings(this);
+    		if(out != null)
+    			mmv.setCordinateTrac(out[0],out[1]);
         }
         return super.onOptionsItemSelected(item);
     }
@@ -253,8 +265,7 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
     }
 
     public void CopyDB(InputStream inputStream, 
-            OutputStream outputStream) throws IOException {
-        //---copy 1K bytes at a time---
+        OutputStream outputStream) throws IOException {
         byte[] buffer = new byte[1024];
         int length;
         while ((length = inputStream.read(buffer)) > 0) {
@@ -282,16 +293,20 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
         }
     }
     
-    public void CopyDatabaseOut() {
+    public void CopyDatabaseOut(boolean type) {
     	if(IsExternalStorageAvailableAndWriteable()){
 	        String destPath = "/data/data/" + getPackageName() + "/databases/locations";
 	        File f = new File(destPath);
 	        if (f.exists()) {
 	        	File extStorage = getExternalFilesDir(null);
 	            try {
-					CopyDB(new FileInputStream(destPath),
-					        new FileOutputStream(new File(extStorage,"locations")));
-				} catch (FileNotFoundException e) {		
+	            	if(type)
+	            		CopyDB(new FileInputStream(new File(extStorage,"locations")),
+								new FileOutputStream(destPath));
+	            	else
+						CopyDB(new FileInputStream(destPath),
+						        new FileOutputStream(new File(extStorage,"locations")));
+				} catch (FileNotFoundException e) {
 					e.printStackTrace();
 				} catch (IOException e) {
 					e.printStackTrace();
@@ -306,14 +321,11 @@ public class MainActivity extends FragmentActivity implements ScreenTypeListener
         String state = Environment.getExternalStorageState();
 
         if (Environment.MEDIA_MOUNTED.equals(state)) {
-            //---you can read and write the media---
             externalStorageAvailable = externalStorageWriteable = true;
         } else if (Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            //---you can only read the media---
             externalStorageAvailable = true;
             externalStorageWriteable = false;
         } else {
-            //---you cannot read nor write the media---
             externalStorageAvailable = externalStorageWriteable = false;
         }
         return externalStorageAvailable && externalStorageWriteable;

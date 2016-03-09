@@ -37,6 +37,19 @@
         android:layout_height="wrap_content"
         android:inputType="number" />
     
+    <TextView
+        android:text="@string/scale"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp" />
+    
+    <Spinner
+    	android:id="@+id/scale_spinner"
+    	android:layout_width="wrap_content"
+    	android:layout_height="wrap_content"
+    	android:entries="@array/option_arrays" />
+    
     <RadioGroup
         android:id="@+id/rdbGp1"
         android:layout_width="fill_parent"

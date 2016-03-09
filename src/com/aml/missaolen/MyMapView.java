@@ -22,6 +22,10 @@ import android.util.AttributeSet;
 import android.view.View;
 
 public class MyMapView extends View{
+	static final int AREAE_MIN = 188500;
+	static final int AREAE_MAX = 712300;
+	static final int AREAN_MIN = 6628700;
+	static final int AREAN_MAX = 6994100;
 	private String directory;
 	private Context context;
 	private Paint paint3;
@@ -38,6 +42,15 @@ public class MyMapView extends View{
 	private ArrayList <Point>tracpointlist;
 	private boolean forceshowtracpoint;
 	private boolean map_loading;
+	private String setup_scale;
+	private int setup_cordinate;
+	private int jakaja;
+	private int previous_map_x;
+	private int previous_map_y;
+	private int copy_size_x;
+	private int copy_dest_x;
+	private int copy_size_y;
+	private int copy_dest_y;
 	
 	public MyMapView(Context context) {
         super(context);
@@ -60,6 +73,9 @@ public class MyMapView extends View{
         bg = Bitmap.createBitmap(2700, 2700, Bitmap.Config.ARGB_8888);
         mcanvas = new Canvas(bg);
         db = new DBAdapter(context);
+        setup_scale = "8000";
+        setup_cordinate = 1800;
+        jakaja = 2;
 	}
 	
 	public void setDirectory(String directory){
@@ -78,7 +94,26 @@ public class MyMapView extends View{
 		this.forceshowtracpoint = forceshowtracpoint;
 	}
 	
-	private void makeMap(){
+	public void setScale(String setup_scale, boolean change){
+		if(setup_scale == null)
+			return;
+		
+		this.setup_scale = setup_scale;
+		int temp_map_x = getE();
+		int temp_map_y = getN();
+		if(setup_scale.equals("8000"))
+			setup_cordinate = 1800;
+		else
+			setup_cordinate = 14400;
+		jakaja = setup_cordinate / 900;
+		if(change){
+			map_x = 0;
+			map_y = 0;
+			setCordinateTrac(temp_map_x,temp_map_y);
+		}
+	}
+	
+	private void makeMap(boolean force){
 		map_loading = true;
 		/*
 		if(bg!=null){
@@ -88,56 +123,95 @@ public class MyMapView extends View{
         bg = Bitmap.createBitmap(2700, 2700, Bitmap.Config.ARGB_8888);
         mcanvas = new Canvas(bg);
         */
-        int tx = map_x;
+		
+		/* Move to next point... */
+		
+		if(!force){
+		int move_x = (map_x - previous_map_x)/jakaja;
+		if(move_x > 0){
+			copy_size_x = 2700 - move_x;
+			copy_dest_x = 0;
+		} else {
+			copy_size_x = move_x + 2700;
+			copy_dest_x = -move_x;
+			move_x = 0;
+		}
+		
+		int move_y = (previous_map_y - map_y)/jakaja;
+		if(move_y > 0){
+			copy_size_y = 2700 - move_y;
+			copy_dest_y = 0;
+		} else {
+			copy_size_y = move_y + 2700;
+			copy_dest_y = -move_y;
+			move_y = 0;
+		}
+				
+		if(copy_size_x > 0 && copy_size_x <= 2700 && copy_size_y > 0 && copy_size_y <= 2700){		
+			Bitmap movebitmap = Bitmap.createBitmap(bg, move_x, move_y, copy_size_x, copy_size_y);
+			mcanvas.drawBitmap(movebitmap, copy_dest_x, copy_dest_y, paint);
+		}
+		} else {
+			copy_size_x = 0;
+			copy_size_y = 0;
+		}
+		
+		int tx = map_x;
         int ty = map_y;
         
         loadScreenPart(tx,ty,0,0);
-		tx+=1800;
+		tx+=setup_cordinate;
 		loadScreenPart(tx,ty,900,0);
-		tx+=1800;
+		tx+=setup_cordinate;
         loadScreenPart(tx,ty,1800,0);
 		tx=map_x;
-        ty-=1800;
+        ty-=setup_cordinate;
         loadScreenPart(tx,ty,0,900);
-		tx+=1800;
+		tx+=setup_cordinate;
 		loadScreenPart(tx,ty,900,900);
-		tx+=1800;
+		tx+=setup_cordinate;
 		loadScreenPart(tx,ty,1800,900);
 		tx=map_x;
-		ty-=1800;
+		ty-=setup_cordinate;
 		loadScreenPart(tx,ty,0,1800);
-		tx+=1800;
+		tx+=setup_cordinate;
 		loadScreenPart(tx,ty,900,1800);
-		tx+=1800;
+		tx+=setup_cordinate;
 		loadScreenPart(tx,ty,1800,1800);
 		map_loading = false;
+		
+		previous_map_x = map_x;
+		previous_map_y = map_y;
 	}
 
 	private void loadScreenPart(int tx,int ty,int px,int py){
-	    File imgFile = new File(directory+tx+"-"+ty+".png");
+	    File imgFile = new File(directory+setup_scale+tx+"-"+ty+".png");
 	    if(!imgFile.exists())
 	    	new ReadMapTask().execute(String.valueOf(tx),String.valueOf(ty),String.valueOf(px),String.valueOf(py));
 	    else {
-	    	Bitmap bmp = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
-	    	if(bmp != null)
-	    		mcanvas.drawBitmap(bmp, px, py, paint);
+	    	if((copy_size_x == 0) || (copy_dest_y > py) || ((copy_dest_y + copy_size_y) <= py) || (copy_size_x == 0) || (copy_dest_x > px) || ((copy_dest_x + copy_size_x) <= px)){
+	    		Bitmap bmp = BitmapFactory.decodeFile(imgFile.getAbsolutePath());
+	    		if(bmp != null)
+	    			mcanvas.drawBitmap(bmp, px, py, paint);
+	    
+	    	}
 	    }
 	}
-	
+		
 	public void setCordinateTrac(int mx, int my){
-		if(mx >= (map_x+1800) || mx <= (map_x-1800) || my >= (map_y+1800) || my <= (map_y-1800)){
+		if(mx >= (map_x+setup_cordinate) || mx <= (map_x-setup_cordinate) || my >= (map_y+setup_cordinate) || my <= (map_y-setup_cordinate)){
 			int f;
 			int map_x_t = map_x;
 			int map_y_t = map_y;
 			
-			for(f=188500 ; f<712300 ; f+=1800){
-				if(f > (mx - 3600)){
+			for(f=AREAE_MIN ; f<AREAE_MAX ; f+=setup_cordinate){
+				if(f > (mx - (setup_cordinate*2))){
 					map_x_t = f;
 					break;
 				}
 			}
-			for(f=6628700 ; f<6994100 ; f+=1800){
-				if(f > (my + 1800)){
+			for(f=AREAN_MIN ; f<AREAN_MAX ; f+=setup_cordinate){
+				if(f > (my + setup_cordinate)){
 					map_y_t = f;
 					break;
 				}
@@ -145,20 +219,20 @@ public class MyMapView extends View{
 			if(map_x_t != map_x || map_y_t != map_y){
 				map_x = map_x_t;
 				map_y = map_y_t;
-				makeMap();
+				makeMap(true);
 			}
 		}
-		this.x = (mx - map_x)/2;
-		this.y = (map_y - my)/2;
+		this.x = (mx - map_x)/jakaja;
+		this.y = (map_y - my)/jakaja;
 		invalidate();
 	}
 	
 	public int getE(){
-		return 2 * this.x + map_x;
+		return jakaja * this.x + map_x;
 	}
 	
 	public int getN(){
-		return map_y - this.y * 2;
+		return map_y - this.y * jakaja;
 	}
 	
 	public void setCordinate(int x, int y){
@@ -198,39 +272,40 @@ public class MyMapView extends View{
 			boolean new_map = false;
 	    	if(t_x == 0){
 	    		new_map = true;
-	    		map_x -= 1800;
+	    		map_x -= setup_cordinate;
 	    		x = 900;
 	    	}
 	    	if(t_y == 0){
 	    		new_map = true;
-	    		map_y += 1800;
+	    		map_y += setup_cordinate;
 	    		y = 900;
 	    	}
 	    	if(t_x == (2700-this.getWidth())){
 	    		new_map = true;
-	    		map_x += 1800;
+	    		map_x += setup_cordinate;
 	    		x -= 900;
 	    	}
 	    	if(t_y == (2700-this.getHeight())){
 	    		new_map = true;
-	    		map_y -= 1800;
+	    		map_y -= setup_cordinate;
 	    		y -= 900;
 	    	}
 	    	if(new_map)
-	    		makeMap();
+	    		makeMap(false);
     	}
+
     	canvas.drawBitmap(Bitmap.createBitmap(bg, t_x, t_y, this.getWidth(), this.getHeight()), 0, 0, paint);
     	if(setcenter){
-	    	int cx = this.getWidth()/2;
-	    	int cy = this.getHeight()/2;
+	    	int cx = this.getWidth()/jakaja;
+	    	int cy = this.getHeight()/jakaja;
 	         paint3.setColor(Color.BLUE);
 	         canvas.drawLine(cx-25, cy-25, cx+25, cy+25, paint3);
 	         canvas.drawLine(cx+25, cy-25, cx-25, cy+25, paint3);
     	}
     	if(selectdate != null)
-    		readPointFromDb(canvas,t_x,t_y);
-    	canvas.drawText("N "+(map_y - this.y * 2), 5, 40, paint);
-    	canvas.drawText("E "+(2 * this.x + map_x), 5, 80, paint);
+    		readPointFromDb(canvas,t_x,t_y);   	
+    	canvas.drawText("N "+getN(), 5, 40, paint);
+    	canvas.drawText("E "+getE(), 5, 80, paint);
     }
     
     private void readPointFromDb(Canvas canvas, int t_x, int t_y){
@@ -256,15 +331,19 @@ public class MyMapView extends View{
     	
     	if(tracpointlist != null){
     	    ListIterator <Point>it = tracpointlist.listIterator();
+    	    int tr_x_previous = 0;
+    	    int tr_y_previous = 0;
     	    while(it.hasNext()){
     	    	Point p = (Point)it.next();
-			    int tr_x = (p.x - map_x)/2 - t_x;
-			    int tr_y = (map_y - p.y)/2 - t_y;
-	    		if(tr_x > 0 && tr_y > 0 && tr_x < this.getWidth() && tr_y < this.getHeight()){
+			    int tr_x = (p.x - map_x)/jakaja - t_x;
+			    int tr_y = (map_y - p.y)/jakaja - t_y;
+	    	    if((Math.abs(tr_x_previous - tr_x) > 5 || Math.abs(tr_y_previous - tr_y) > 5) && tr_x > 0 && tr_y > 0 && tr_x < this.getWidth() && tr_y < this.getHeight()){
 	    			paint3.setColor(Color.YELLOW);
 				    canvas.drawRect(tr_x-5, tr_y-5, tr_x+5, tr_y+5, paint3);
 	    			paint3.setColor(Color.BLUE);
 				    canvas.drawRect(tr_x-2, tr_y-2, tr_x+3, tr_y+3, paint3);
+				    tr_x_previous = tr_x;
+		    	    tr_y_previous = tr_y;
 	    		}
     	    }
     	}
@@ -291,14 +370,14 @@ public class MyMapView extends View{
 		try{
 			URL url = new URL(
 				"http://kansalaisen.karttapaikka.fi/image?request=GetMap&bbox="
-				+x+","+y+","+(Integer.parseInt(x) + 1800)+","+(Integer.parseInt(y) - 1800)
-				+"&scale=8000&width=900&height=900&srs=EPSG:3067&styles=normal&lang=fi&lmid=1410107944324");
+				+x+","+y+","+(Integer.parseInt(x) + setup_cordinate)+","+(Integer.parseInt(y) - setup_cordinate)
+				+"&scale="+setup_scale+"&width=900&height=900&srs=EPSG:3067&styles=normal&lang=fi&lmid=1410107944324");
 			URLConnection con = url.openConnection();
 	
 			InputStream input = con.getInputStream();
 			byte[] buffer = new byte[4096];
 			int n = - 1;
-			OutputStream output = new FileOutputStream(new File(directory,x+"-"+y+".png"));
+			OutputStream output = new FileOutputStream(new File(directory,setup_scale+x+"-"+y+".png"));
 			while ( (n = input.read(buffer)) != -1)
 			{
 				if (n > 0)
@@ -309,6 +388,6 @@ public class MyMapView extends View{
 		}catch(Exception e){
 			return null;
 		}
-	return x+"-"+y+".png";
+	return setup_scale+x+"-"+y+".png";
 	}
 }
